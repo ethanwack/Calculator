@@ -1,0 +1,6 @@
+/* Theme toggle button styling */
+QPushButton#theme-toggle {
+    border: 1px solid #3498DB;
+    min-width: 120px;
+    padding: 8px 16px;
+}

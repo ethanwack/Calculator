@@ -1,0 +1,119 @@
+/* Dark theme */
+@import url("common.qss");
+QWidget {
+    background-color: #2b3136;
+    color: #ffffff;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+QPushButton {
+    background-color: #3b4250;
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+QPushButton:hover {
+    background-color: #4b5562;
+}
+
+QLabel#display {
+    background-color: #222222;
+    color: #ffffff;
+    padding: 15px;
+    border-radius: 5px;
+    min-height: 60px;
+    margin: 5px;
+}
+
+QTabWidget::pane {
+    border: none;
+    background-color: #34495E;
+}
+
+QTabBar::tab {
+    background-color: #2C3E50;
+    color: white;
+    min-width: 100px;
+    padding: 10px;
+    border-radius: 5px 5px 0 0;
+    margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+    background-color: #3498DB;
+}
+
+QPushButton[class="operator"] {
+    background-color: #FF9800;
+    font-weight: bold;
+}
+
+QPushButton[class="operator"]:hover {
+    background-color: #FFA726;
+}
+
+QPushButton[class="equals"] {
+    background-color: #2196F3;
+    font-weight: bold;
+}
+
+QPushButton[class="equals"]:hover {
+    background-color: #42A5F5;
+}
+
+QPushButton[class="clear"] {
+    background-color: #F44336;
+    font-weight: bold;
+}
+
+QPushButton[class="clear"]:hover {
+    background-color: #EF5350;
+}
+
+QPushButton[class="function"] {
+    background-color: #673AB7;
+}
+
+QPushButton[class="function"]:hover {
+    background-color: #7E57C2;
+}
+
+QPushButton[class="memory"] {
+    background-color: #009688;
+}
+
+QPushButton[class="memory"]:hover {
+    background-color: #26A69A;
+}
+
+QPushButton[class="mode"] {
+    background-color: #795548;
+}
+
+QPushButton[class="mode"]:hover {
+    background-color: #8D6E63;
+}
+
+QLineEdit {
+    background-color: #222222;
+    color: #ffffff;
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid #3498DB;
+}
+
+QGroupBox {
+    color: #ffffff;
+    border: 1px solid #3498DB;
+    border-radius: 5px;
+    margin-top: 1em;
+    padding-top: 10px;
+}
+
+QGroupBox::title {
+    color: #3498DB;
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 3px 0 3px;
+}

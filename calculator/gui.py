@@ -36,6 +36,15 @@ class CalculatorGUI(QMainWindow):
         self.setCentralWidget(self.main_widget)
         main_layout = QVBoxLayout(self.main_widget)
 
+        # Theme toggle
+        theme_layout = QHBoxLayout()
+        self.theme_btn = QPushButton("🌙 Dark Mode")
+        self.theme_btn.setObjectName("theme-toggle")
+        self.theme_btn.clicked.connect(self.toggle_theme)
+        theme_layout.addStretch()
+        theme_layout.addWidget(self.theme_btn)
+        main_layout.addLayout(theme_layout)
+
         self.tabs = QTabWidget()
         main_layout.addWidget(self.tabs)
 
@@ -513,22 +522,30 @@ class CalculatorGUI(QMainWindow):
             self.analysis_result.setText(f"Error finding critical points: {str(e)}")
 
     def set_styles(self):
-        """Load and apply .qss files from the styles folder (if present).
-        The files are applied in this order to allow overrides:
-        base.qss, display.qss, buttons.qss, tabs.qss
-        """
+        """Initialize with dark theme by default"""
+        self.current_theme = 'dark'
+        self.apply_theme()
+        
+    def apply_theme(self):
+        """Apply the current theme"""
         try:
-            style_dir = Path(__file__).parent / 'styles'
-            parts = []
-            for name in ('base.qss', 'display.qss', 'buttons.qss', 'tabs.qss'):
-                p = style_dir / name
-                if p.exists():
-                    parts.append(p.read_text())
-            if parts:
-                self.setStyleSheet('\n'.join(parts))
+            theme_file = Path(__file__).parent / 'styles' / 'themes' / f'{self.current_theme}.qss'
+            if theme_file.exists():
+                self.setStyleSheet(theme_file.read_text())
+                
+                # Update button text
+                if self.current_theme == 'dark':
+                    self.theme_btn.setText("☀️ Light Mode")
+                else:
+                    self.theme_btn.setText("🌙 Dark Mode")
         except Exception:
             # fallback: a minimal inline style
             self.setStyleSheet('QWidget { background: #2b3136 }')
+            
+    def toggle_theme(self):
+        """Switch between light and dark themes"""
+        self.current_theme = 'light' if self.current_theme == 'dark' else 'dark'
+        self.apply_theme()
 
 
 def run_app():
