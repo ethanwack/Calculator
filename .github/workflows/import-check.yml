@@ -1,0 +1,33 @@
+name: Import & Syntax Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  import-check:
+    name: Syntax + import check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run syntax checks and import test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python -m py_compile calculator/gui.py Main.py
+          python -c "import calculator; print('import ok')"
