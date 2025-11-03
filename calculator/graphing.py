@@ -59,6 +59,28 @@ class GraphCanvas(FigureCanvasQTAgg):
         self.yscl = float(yscl)
         self.setup_axes()
         self.draw()
+        
+    def plot_point(self, x, y, color='red', marker='o'):
+        """Plot a point on the graph"""
+        self.axes.plot(x, y, color=color, marker=marker, markersize=8)
+        self.draw()
+        
+    def clear_points(self):
+        """Clear all plotted points"""
+        self.setup_axes()
+        # Replot all functions
+        for func in self.parent().graph_calc.get_functions():
+            self.plot_function(func)
+        self.draw()
+        
+    def trace_function(self, expr, x):
+        """Find y value for given x on function"""
+        try:
+            expr = self.prepare_expression(expr)
+            y = eval(expr.replace('x', f'({x})'))
+            return float(y)
+        except Exception:
+            return None
     
     def plot_function(self, expr):
         """Plot a mathematical expression"""
@@ -176,10 +198,109 @@ class GraphingCalculator:
     def __init__(self):
         self.functions = []  # Store active functions
         self.current_function = ""
+        self.trace_point = None
         
     def set_function(self, expr):
         """Set the current function to plot"""
         self.current_function = expr
+        
+    def evaluate_at(self, expr, x_val):
+        """Evaluate a function at a specific x value"""
+        try:
+            x = x_val
+            expr = self.prepare_expression(expr)
+            return eval(expr)
+        except Exception:
+            return None
+            
+    def find_zeros(self, expr, start=-10, end=10, points=1000):
+        """Find x-intercepts (zeros) of the function"""
+        try:
+            x = np.linspace(start, end, points)
+            expr = self.prepare_expression(expr)
+            y = eval(expr)
+            
+            # Find where function changes sign
+            zeros = []
+            for i in range(len(x)-1):
+                if y[i] * y[i+1] <= 0:  # Sign change detected
+                    # Use binary search to refine the zero
+                    x0 = self._binary_search_zero(expr, x[i], x[i+1])
+                    if x0 is not None:
+                        zeros.append(x0)
+            return zeros
+        except Exception:
+            return []
+            
+    def _binary_search_zero(self, expr, a, b, tolerance=1e-10, max_iter=50):
+        """Binary search to find precise zero location"""
+        try:
+            fa = eval(expr.replace('x', f'({a})'))
+            fb = eval(expr.replace('x', f'({b})'))
+            
+            if fa * fb > 0:
+                return None
+                
+            iteration = 0
+            while (b - a) > tolerance and iteration < max_iter:
+                c = (a + b) / 2
+                fc = eval(expr.replace('x', f'({c})'))
+                
+                if abs(fc) < tolerance:
+                    return c
+                elif fa * fc < 0:
+                    b = c
+                    fb = fc
+                else:
+                    a = c
+                    fa = fc
+                iteration += 1
+                
+            return (a + b) / 2
+        except Exception:
+            return None
+            
+    def find_intersections(self, expr1, expr2, start=-10, end=10, points=1000):
+        """Find intersection points of two functions"""
+        try:
+            # Create difference function (f1 - f2)
+            diff_expr = f"({expr1}) - ({expr2})"
+            # Intersections are zeros of the difference
+            x_ints = self.find_zeros(diff_expr, start, end, points)
+            
+            # Calculate y-coordinates
+            intersections = []
+            for x in x_ints:
+                y = self.evaluate_at(expr1, x)
+                if y is not None:
+                    intersections.append((x, y))
+            return intersections
+        except Exception:
+            return []
+            
+    def find_critical_points(self, expr, start=-10, end=10, points=1000):
+        """Find local maxima and minima"""
+        try:
+            x = np.linspace(start, end, points)
+            expr = self.prepare_expression(expr)
+            y = eval(expr)
+            
+            # Compute numerical derivative
+            dx = x[1] - x[0]
+            dy = np.diff(y)
+            derivative = dy / dx
+            
+            # Find where derivative changes sign
+            critical_points = []
+            for i in range(len(derivative)-1):
+                if derivative[i] * derivative[i+1] <= 0:
+                    # Potential critical point
+                    x_crit = x[i]
+                    y_crit = eval(expr.replace('x', f'({x_crit})'))
+                    critical_points.append((x_crit, y_crit))
+            return critical_points
+        except Exception:
+            return []
         
     def add_function(self, expr):
         """Add a function to the plot"""

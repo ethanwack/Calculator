@@ -7,7 +7,7 @@ import numpy as np
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QGridLayout,
     QPushButton, QLabel, QTabWidget, QSizePolicy, QLineEdit,
-    QHBoxLayout, QGroupBox, QFormLayout
+    QHBoxLayout, QGroupBox, QFormLayout, QInputDialog
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QDoubleValidator
@@ -309,6 +309,46 @@ class CalculatorGUI(QMainWindow):
         window_group.setLayout(window_layout)
         controls.addWidget(window_group)
         
+        # Analysis controls
+        analysis_group = QGroupBox("Analysis")
+        analysis_layout = QVBoxLayout()
+        
+        # Trace controls
+        trace_layout = QHBoxLayout()
+        self.trace_x = QLineEdit()
+        self.trace_x.setPlaceholderText("X value")
+        self.trace_x.setValidator(QDoubleValidator())
+        trace_btn = QPushButton("Trace")
+        trace_btn.clicked.connect(self.trace_point)
+        trace_layout.addWidget(self.trace_x)
+        trace_layout.addWidget(trace_btn)
+        analysis_layout.addLayout(trace_layout)
+        
+        # Analysis buttons
+        btn_layout = QHBoxLayout()
+        zeros_btn = QPushButton("Find Zeros")
+        intersect_btn = QPushButton("Intersections")
+        critical_btn = QPushButton("Critical Points")
+        clear_btn = QPushButton("Clear Points")
+        
+        zeros_btn.clicked.connect(self.find_zeros)
+        intersect_btn.clicked.connect(self.find_intersections)
+        critical_btn.clicked.connect(self.find_critical_points)
+        clear_btn.clicked.connect(lambda: self.graph_canvas.clear_points())
+        
+        btn_layout.addWidget(zeros_btn)
+        btn_layout.addWidget(intersect_btn)
+        btn_layout.addWidget(critical_btn)
+        btn_layout.addWidget(clear_btn)
+        analysis_layout.addLayout(btn_layout)
+        
+        # Results display
+        self.analysis_result = QLabel("")
+        analysis_layout.addWidget(self.analysis_result)
+        
+        analysis_group.setLayout(analysis_layout)
+        controls.addWidget(analysis_group)
+        
         self.graphing_layout.addLayout(controls)
         
         # Add the plotting canvas
@@ -380,6 +420,97 @@ class CalculatorGUI(QMainWindow):
         self.window_inputs['xscl'].setText("1")
         self.window_inputs['yscl'].setText("1")
         self.update_window()
+        
+    def trace_point(self):
+        """Trace a point on the current function"""
+        try:
+            x = float(self.trace_x.text())
+            expr = self.func_input.text().strip()
+            
+            if expr:
+                y = self.graph_canvas.trace_function(expr, x)
+                if y is not None:
+                    self.graph_canvas.plot_point(x, y)
+                    self.analysis_result.setText(f"Point: ({x:.3f}, {y:.3f})")
+                else:
+                    self.analysis_result.setText("Could not evaluate function at this point")
+        except ValueError:
+            self.analysis_result.setText("Invalid x value")
+            
+    def find_zeros(self):
+        """Find x-intercepts of the current function"""
+        expr = self.func_input.text().strip()
+        if not expr:
+            return
+            
+        try:
+            xmin = float(self.window_inputs['xmin'].text())
+            xmax = float(self.window_inputs['xmax'].text())
+            zeros = self.graph_calc.find_zeros(expr, xmin, xmax)
+            
+            if zeros:
+                # Plot zeros
+                for x in zeros:
+                    self.graph_canvas.plot_point(x, 0, color='green')
+                # Display results
+                zeros_str = ", ".join(f"x = {x:.3f}" for x in zeros)
+                self.analysis_result.setText(f"Zeros found: {zeros_str}")
+            else:
+                self.analysis_result.setText("No zeros found in current window")
+        except Exception as e:
+            self.analysis_result.setText(f"Error finding zeros: {str(e)}")
+            
+    def find_intersections(self):
+        """Find intersections between two functions"""
+        try:
+            expr1 = self.func_input.text().strip()
+            if not expr1:
+                self.analysis_result.setText("Enter first function")
+                return
+                
+            expr2, ok = QInputDialog.getText(self, 
+                "Find Intersections",
+                "Enter second function:")
+            
+            if ok and expr2:
+                xmin = float(self.window_inputs['xmin'].text())
+                xmax = float(self.window_inputs['xmax'].text())
+                points = self.graph_calc.find_intersections(expr1, expr2, xmin, xmax)
+                
+                if points:
+                    # Plot intersection points
+                    for x, y in points:
+                        self.graph_canvas.plot_point(x, y, color='blue')
+                    # Display results
+                    points_str = ", ".join(f"({x:.3f}, {y:.3f})" for x, y in points)
+                    self.analysis_result.setText(f"Intersections: {points_str}")
+                else:
+                    self.analysis_result.setText("No intersections found in current window")
+        except Exception as e:
+            self.analysis_result.setText(f"Error finding intersections: {str(e)}")
+            
+    def find_critical_points(self):
+        """Find local maxima and minima"""
+        expr = self.func_input.text().strip()
+        if not expr:
+            return
+            
+        try:
+            xmin = float(self.window_inputs['xmin'].text())
+            xmax = float(self.window_inputs['xmax'].text())
+            points = self.graph_calc.find_critical_points(expr, xmin, xmax)
+            
+            if points:
+                # Plot critical points
+                for x, y in points:
+                    self.graph_canvas.plot_point(x, y, color='purple')
+                # Display results
+                points_str = ", ".join(f"({x:.3f}, {y:.3f})" for x, y in points)
+                self.analysis_result.setText(f"Critical points: {points_str}")
+            else:
+                self.analysis_result.setText("No critical points found in current window")
+        except Exception as e:
+            self.analysis_result.setText(f"Error finding critical points: {str(e)}")
 
     def set_styles(self):
         """Load and apply .qss files from the styles folder (if present).
