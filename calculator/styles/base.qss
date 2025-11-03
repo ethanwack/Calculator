@@ -1,0 +1,18 @@
+/* base.qss - general widget defaults */
+QWidget {
+    background-color: #2b3136;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #ffffff;
+}
+
+/* default button sizing */
+QPushButton {
+    background-color: #3b4250;
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+QPushButton:hover {
+    background-color: #4b5562;
+}

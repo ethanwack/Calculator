@@ -1,0 +1,21 @@
+/* buttons.qss - button color coding and special classes */
+QPushButton[class="operator"] {
+    background-color: #FF9800;
+    font-weight: bold;
+}
+QPushButton[class="operator"]:hover { background-color: #FFA726; }
+
+QPushButton[class="equals"] { background-color: #2196F3; font-weight: bold; }
+QPushButton[class="equals"]:hover { background-color: #42A5F5; }
+
+QPushButton[class="clear"] { background-color: #F44336; font-weight: bold; }
+QPushButton[class="clear"]:hover { background-color: #EF5350; }
+
+QPushButton[class="function"] { background-color: #673AB7; }
+QPushButton[class="function"]:hover { background-color: #7E57C2; }
+
+QPushButton[class="memory"] { background-color: #009688; }
+QPushButton[class="memory"]:hover { background-color: #26A69A; }
+
+QPushButton[class="mode"] { background-color: #795548; }
+QPushButton[class="mode"]:hover { background-color: #8D6E63; }

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+        }
+        
+        .calculator {
+            background: #333;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .display {
+            background: #222;
+            color: white;
+            padding: 20px;
+            font-size: 2em;
+            text-align: right;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            min-height: 60px;
+            overflow: hidden;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        button {
+            padding: 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #666;
+            color: white;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #999;
+        }
+        
+        .operator {
+            background: #ff9500;
+        }
+        
+        .operator:hover {
+            background: #ffb143;
+        }
+        
+        .equals {
+            background: #217ecc;
+        }
+        
+        .equals:hover {
+            background: #4199e1;
+        }
+        
+        .clear {
+            background: #ff3b30;
+        }
+        
+        .clear:hover {
+            background: #ff6961;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">0</div>
+        <div class="buttons">
+            <button class="clear">C</button>
+            <button class="operator">±</button>
+            <button class="operator">%</button>
+            <button class="operator">÷</button>
+            <button>7</button>
+            <button>8</button>
+            <button>9</button>
+            <button class="operator">×</button>
+            <button>4</button>
+            <button>5</button>
+            <button>6</button>
+            <button class="operator">-</button>
+            <button>1</button>
+            <button>2</button>
+            <button>3</button>
+            <button class="operator">+</button>
+            <button style="grid-column: span 2;">0</button>
+            <button>.</button>
+            <button class="equals">=</button>
+        </div>
+    </div>
+    <script>
+        class Calculator {
+            constructor() {
+                this.display = document.querySelector('.display');
+                this.buttons = document.querySelector('.buttons');
+                this.currentValue = '0';
+                this.previousValue = '';
+                this.operation = null;
+                this.shouldResetDisplay = false;
+                
+                this.buttons.addEventListener('click', (e) => {
+                    if (e.target.matches('button')) {
+                        this.handleButton(e.target.textContent);
+                    }
+                });
+            }
+            
+            handleButton(value) {
+                if (this.isNumber(value)) {
+                    this.handleNumber(value);
+                } else if (value === '.') {
+                    this.handleDecimal();
+                } else if (value === 'C') {
+                    this.clear();
+                } else if (value === '±') {
+                    this.toggleSign();
+                } else if (value === '%') {
+                    this.percentage();
+                } else if (this.isOperator(value)) {
+                    this.handleOperator(value);
+                } else if (value === '=') {
+                    this.calculate();
+                }
+                
+                this.updateDisplay();
+            }
+            
+            handleNumber(number) {
+                if (this.shouldResetDisplay) {
+                    this.currentValue = number;
+                    this.shouldResetDisplay = false;
+                } else {
+                    this.currentValue = this.currentValue === '0' ? number : this.currentValue + number;
+                }
+            }
+            
+            handleDecimal() {
+                if (!this.currentValue.includes('.')) {
+                    this.currentValue += '.';
+                }
+            }
+            
+            handleOperator(operator) {
+                if (this.operation !== null) {
+                    this.calculate();
+                }
+                this.previousValue = this.currentValue;
+                this.operation = operator;
+                this.shouldResetDisplay = true;
+            }
+            
+            calculate() {
+                if (this.operation === null || this.shouldResetDisplay) return;
+                
+                const prev = parseFloat(this.previousValue);
+                const current = parseFloat(this.currentValue);
+                let result;
+                
+                switch (this.operation) {
+                    case '+':
+                        result = prev + current;
+                        break;
+                    case '-':
+                        result = prev - current;
+                        break;
+                    case '×':
+                        result = prev * current;
+                        break;
+                    case '÷':
+                        result = prev / current;
+                        break;
+                }
+                
+                this.currentValue = result.toString();
+                this.operation = null;
+                this.shouldResetDisplay = true;
+            }
+            
+            toggleSign() {
+                this.currentValue = (parseFloat(this.currentValue) * -1).toString();
+            }
+            
+            percentage() {
+                this.currentValue = (parseFloat(this.currentValue) / 100).toString();
+            }
+            
+            clear() {
+                this.currentValue = '0';
+                this.previousValue = '';
+                this.operation = null;
+                this.shouldResetDisplay = false;
+            }
+            
+            isNumber(value) {
+                return !isNaN(value) && value !== ' ';
+            }
+            
+            isOperator(value) {
+                return ['+', '-', '×', '÷'].includes(value);
+            }
+            
+            updateDisplay() {
+                this.display.textContent = this.currentValue;
+            }
+        }
+        
+        new Calculator();
+    </script>
+</body>
+</html>

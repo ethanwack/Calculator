@@ -1,0 +1,4 @@
+/* tabs.qss - tab styling */
+QTabWidget::pane { border: none; background-color: #34495E; }
+QTabBar::tab { background-color: #2C3E50; color: white; min-width: 100px; padding: 10px; border-radius: 5px 5px 0 0; margin-right: 2px; }
+QTabBar::tab:selected { background-color: #3498DB; }

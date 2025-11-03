@@ -1,0 +1,10 @@
+/* display.qss - display area */
+QLabel#display {
+    background-color: #222222;
+    color: #ffffff;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 24pt;
+    min-height: 60px;
+    margin: 5px;
+}
