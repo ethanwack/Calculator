@@ -22,6 +22,9 @@ class GraphCanvas(FigureCanvasQTAgg):
         self.xscl = 1
         self.yscl = 1
         
+        # Pan tracking
+        self._pan_start = None
+        
         self.setup_axes()
     
     def setup_axes(self):
@@ -35,6 +38,16 @@ class GraphCanvas(FigureCanvasQTAgg):
         # Set major ticks according to scale
         self.axes.set_xticks(np.arange(self.xmin, self.xmax + 1, self.xscl))
         self.axes.set_yticks(np.arange(self.ymin, self.ymax + 1, self.yscl))
+        
+        # Enable mouse pan and zoom
+        self.fig.canvas.mpl_connect('button_press_event', self.on_mouse_press)
+        self.fig.canvas.mpl_connect('button_release_event', self.on_mouse_release)
+        self.fig.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
+        self.fig.canvas.mpl_connect('scroll_event', self.on_scroll)
+        
+        # Store initial view for reset
+        self._default_xlim = (self.xmin, self.xmax)
+        self._default_ylim = (self.ymin, self.ymax)
     
     def set_window(self, xmin, xmax, ymin, ymax, xscl=1, yscl=1):
         """Update window ranges and redraw"""
@@ -85,7 +98,77 @@ class GraphCanvas(FigureCanvasQTAgg):
         # Ensure multiplication is explicit (2x -> 2*x)
         expr = re.sub(r'(\d+)([a-zA-Z])', r'\1*\2', expr)
         
-        return expr.replace('x', '(x)')  # wrap x in parentheses for safety
+        return expr.replace('x', '(x)')
+        
+    def reset_view(self):
+        """Reset to default window settings"""
+        if hasattr(self, '_default_xlim') and hasattr(self, '_default_ylim'):
+            self.xmin, self.xmax = self._default_xlim
+            self.ymin, self.ymax = self._default_ylim
+            self.setup_axes()
+            self.draw()
+            
+    def on_mouse_press(self, event):
+        """Handle mouse button press"""
+        if event.inaxes != self.axes:
+            return
+        self._pan_start = (event.xdata, event.ydata)
+        
+    def on_mouse_release(self, event):
+        """Handle mouse button release"""
+        self._pan_start = None
+        
+    def on_mouse_move(self, event):
+        """Handle mouse movement for panning"""
+        if event.inaxes != self.axes or self._pan_start is None or not event.button:
+            return
+        
+        # Calculate the distance moved
+        dx = event.xdata - self._pan_start[0]
+        dy = event.ydata - self._pan_start[1]
+        
+        # Update limits
+        self.axes.set_xlim(self.axes.get_xlim() - dx)
+        self.axes.set_ylim(self.axes.get_ylim() - dy)
+        
+        # Update internal values
+        self.xmin, self.xmax = self.axes.get_xlim()
+        self.ymin, self.ymax = self.axes.get_ylim()
+        
+        self.draw()
+        
+    def on_scroll(self, event):
+        """Handle mouse wheel for zooming"""
+        if event.inaxes != self.axes:
+            return
+            
+        # Get the current pointer position
+        xdata, ydata = event.xdata, event.ydata
+        
+        # Get current axis ranges
+        cur_xlim = self.axes.get_xlim()
+        cur_ylim = self.axes.get_ylim()
+        
+        # Get the relative position of the mouse
+        x_rel = (xdata - cur_xlim[0]) / (cur_xlim[1] - cur_xlim[0])
+        y_rel = (ydata - cur_ylim[0]) / (cur_ylim[1] - cur_ylim[0])
+        
+        # Zoom factor 1.2 or 1/1.2
+        scale_factor = 1.2 if event.button == 'up' else 1/1.2
+        
+        # Calculate new ranges
+        x_range = (cur_xlim[1] - cur_xlim[0]) / scale_factor
+        y_range = (cur_ylim[1] - cur_ylim[0]) / scale_factor
+        
+        # Calculate new limits
+        self.xmin = xdata - x_rel * x_range
+        self.xmax = self.xmin + x_range
+        self.ymin = ydata - y_rel * y_range
+        self.ymax = self.ymin + y_range
+        
+        # Update plot
+        self.setup_axes()
+        self.draw()  # wrap x in parentheses for safety
 
 
 class GraphingCalculator:

@@ -45,7 +45,7 @@ class CalculatorGUI(QMainWindow):
         self.basic_display = QLabel("0")
         self.basic_display.setObjectName("display")
         self.basic_display.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.basic_display.setFont(QFont('Consolas', 24))
+        self.basic_display.setFont(QFont('Monospace', 24))
         self.basic_layout.addWidget(self.basic_display)
         self.create_basic_grid(self.basic_layout)
         self.tabs.addTab(self.basic_tab, "Basic")
@@ -56,7 +56,7 @@ class CalculatorGUI(QMainWindow):
         self.scientific_display = QLabel("0")
         self.scientific_display.setObjectName("display")
         self.scientific_display.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.scientific_display.setFont(QFont('Consolas', 20))
+        self.scientific_display.setFont(QFont('Monospace', 20))
         self.scientific_layout.addWidget(self.scientific_display)
         self.create_scientific_grid(self.scientific_layout)
         self.tabs.addTab(self.scientific_tab, "Scientific")
@@ -292,6 +292,20 @@ class CalculatorGUI(QMainWindow):
         update_btn = QPushButton("Update Window")
         update_btn.clicked.connect(self.update_window)
         window_layout.addWidget(update_btn)
+        
+        # Add zoom controls
+        zoom_layout = QHBoxLayout()
+        zoom_in = QPushButton("Zoom In (×2)")
+        zoom_out = QPushButton("Zoom Out (÷2)")
+        zoom_std = QPushButton("Standard")
+        zoom_in.clicked.connect(lambda: self.zoom_graph(2))
+        zoom_out.clicked.connect(lambda: self.zoom_graph(0.5))
+        zoom_std.clicked.connect(self.reset_graph_view)
+        zoom_layout.addWidget(zoom_in)
+        zoom_layout.addWidget(zoom_out)
+        zoom_layout.addWidget(zoom_std)
+        window_layout.addLayout(zoom_layout)
+        
         window_group.setLayout(window_layout)
         controls.addWidget(window_group)
         
@@ -328,6 +342,44 @@ class CalculatorGUI(QMainWindow):
                 self.graph_canvas.plot_function(func)
         except ValueError:
             pass  # Invalid number format - ignore
+            
+    def zoom_graph(self, factor):
+        """Zoom in or out by the given factor"""
+        try:
+            # Get current window values
+            xmin = float(self.window_inputs['xmin'].text())
+            xmax = float(self.window_inputs['xmax'].text())
+            ymin = float(self.window_inputs['ymin'].text())
+            ymax = float(self.window_inputs['ymax'].text())
+            
+            # Calculate center points
+            xcenter = (xmax + xmin) / 2
+            ycenter = (ymax + ymin) / 2
+            
+            # Calculate new ranges
+            xrange = (xmax - xmin) / factor
+            yrange = (ymax - ymin) / factor
+            
+            # Update window inputs
+            self.window_inputs['xmin'].setText(f"{xcenter - xrange/2:.2f}")
+            self.window_inputs['xmax'].setText(f"{xcenter + xrange/2:.2f}")
+            self.window_inputs['ymin'].setText(f"{ycenter - yrange/2:.2f}")
+            self.window_inputs['ymax'].setText(f"{ycenter + yrange/2:.2f}")
+            
+            # Update the window
+            self.update_window()
+        except ValueError:
+            pass  # Invalid number format - ignore
+            
+    def reset_graph_view(self):
+        """Reset to standard window (-10,10) x (-10,10)"""
+        self.window_inputs['xmin'].setText("-10")
+        self.window_inputs['xmax'].setText("10")
+        self.window_inputs['ymin'].setText("-10")
+        self.window_inputs['ymax'].setText("10")
+        self.window_inputs['xscl'].setText("1")
+        self.window_inputs['yscl'].setText("1")
+        self.update_window()
 
     def set_styles(self):
         """Load and apply .qss files from the styles folder (if present).
